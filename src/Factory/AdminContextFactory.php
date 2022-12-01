@@ -3,6 +3,7 @@
 namespace EasyCorp\Bundle\EasyAdminBundle\Factory;
 
 use EasyCorp\Bundle\EasyAdminBundle\Cache\CacheWarmer;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\TextDirection;
@@ -114,6 +115,21 @@ final class AdminContextFactory
         $crudDto = $crudController->configureCrud($defaultCrud)->getAsDto();
 
         $entityFqcn = $crudControllers->findEntityFqcnByCrudFqcn(\get_class($crudController));
+
+        if ($crudDto->isColumnChooserEnabled()) {
+            $actionConfigDto->appendAction(
+                Crud::PAGE_INDEX,
+                Action::new(Action::COLUMN_CHOOSER, t('columnchooser.action.label', [], 'EasyAdminBundle'), 'fa fa-thin fa-table-columns')
+                    ->createAsGlobalAction()
+                    ->linkToUrl('#')
+                    ->setHtmlAttributes([
+                        'data-bs-toggle' => 'modal',
+                        'data-bs-target' => '#modal-column-chooser',
+                    ])
+                    ->displayAsButton()
+                    ->getAsDto()
+            );
+        }
 
         $crudDto->setControllerFqcn(\get_class($crudController));
         $crudDto->setActionsConfig($actionConfigDto);
