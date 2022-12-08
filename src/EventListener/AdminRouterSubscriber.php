@@ -77,7 +77,7 @@ class AdminRouterSubscriber implements EventSubscriberInterface
         }
 
         // @ksn135: we need to get adminContext anyway to setup ea variable, so try again
-        if ($brokenContextFailedWithException) {
+        if (\is_object($brokenContextFailedWithException)) {
             $adminContext = $this->getAdminContext($request, true);
         }
 
@@ -88,7 +88,7 @@ class AdminRouterSubscriber implements EventSubscriberInterface
         // @ksn135: re-run to FAIL and show exception to user
         // BUT now we have easy admin context in ea variable
         // So ExceptionListener will works as expected
-        if ($brokenContextFailedWithException) {
+        if (\is_object($brokenContextFailedWithException)) {
             throw $brokenContextFailedWithException;
         }
     }
