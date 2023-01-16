@@ -5,6 +5,7 @@ import bootstrap from 'bootstrap/dist/js/bootstrap.bundle';
 import Mark from 'mark.js/src/vanilla';
 import Autocomplete from './autocomplete';
 import Sortable from "sortablejs";
+import {toggleVisibilityClasses} from "./helpers";
 
 // global export
 window.Sortable = Sortable;
@@ -264,16 +265,16 @@ class App {
                 const batchActions = content.querySelector('.batch-actions');
 
                 if (null !== contentTitle) {
-                    contentTitle.style.visibility = rowsAreSelected ? 'hidden' : 'visible';
+                    toggleVisibilityClasses(contentTitle, rowsAreSelected);
                 }
                 if (null !== filters) {
-                    filters.style.display = rowsAreSelected ? 'none' : 'block';
+                    toggleVisibilityClasses(filters, rowsAreSelected);
                 }
                 if (null !== globalActions) {
-                    globalActions.style.display = rowsAreSelected ? 'none' : 'block';
+                    toggleVisibilityClasses(globalActions, rowsAreSelected);
                 }
                 if (null !== batchActions) {
-                    batchActions.style.display = rowsAreSelected ? 'block' : 'none';
+                    toggleVisibilityClasses(batchActions, !rowsAreSelected);
                 }
             });
         });
