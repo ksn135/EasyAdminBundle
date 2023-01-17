@@ -4,11 +4,12 @@ require('../css/app.scss');
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle';
 import Mark from 'mark.js/src/vanilla';
 import Autocomplete from './autocomplete';
-import Sortable from "sortablejs";
 import {toggleVisibilityClasses} from "./helpers";
+import Sortable from "sortablejs";
 
 // global export
 window.Sortable = Sortable;
+
 // Provide Bootstrap variable globally to allow custom backend pages to use it
 window.bootstrap = bootstrap;
 

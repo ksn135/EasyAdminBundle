@@ -3,9 +3,9 @@
 namespace EasyCorp\Bundle\EasyAdminBundle\Provider;
 
 use Doctrine\Persistence\ManagerRegistry;
-use EasyCorp\Bundle\EasyAdminBundle\Interfaces\SelectedColumnStorageProviderInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Interfaces\UserParametersStorageInterface;
-use Symfony\Component\Security\Core\Security;
+use EasyCorp\Bundle\EasyAdminBundle\Contracts\ColumnStorage\SelectedColumnStorageProviderInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Contracts\ColumnStorage\UserParametersStorageInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class UserSelectedColumnStorageProvider implements SelectedColumnStorageProviderInterface
 {
