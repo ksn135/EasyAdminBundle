@@ -47,6 +47,11 @@ final class ExceptionListener
             return;
         }
 
+        if (null === $this->adminContextProvider->getContext()) {
+            return;
+        }
+
+        // TODO: check why these custom error pages don't work
         if (!$exception instanceof BaseException) {
             $exception = new BaseException(new ExceptionContext($exception->getMessage()));
         }
