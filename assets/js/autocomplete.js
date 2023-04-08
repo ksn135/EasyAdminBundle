@@ -8,8 +8,6 @@ export default class Autocomplete
             return;
         }
 
-        if (! element.hasAttribute("value")) return;
-
         const autocompleteEndpointUrl = element.getAttribute('data-ea-autocomplete-endpoint-url');
         if (null !== autocompleteEndpointUrl) {
             return this.#createAutocompleteWithRemoteData(element, autocompleteEndpointUrl);
@@ -19,6 +17,8 @@ export default class Autocomplete
         if (renderOptionsAsHtml) {
             return this.#createAutocompleteWithHtmlContents(element);
         }
+
+        if (! element.hasAttribute("value")) return;
 
         return this.#createAutocomplete(element);
     }
