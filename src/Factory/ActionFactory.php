@@ -29,7 +29,7 @@ final class ActionFactory
     private AdminUrlGenerator $adminUrlGenerator;
     private ?CsrfTokenManagerInterface $csrfTokenManager;
 
-    public function __construct(AdminContextProvider $adminContextProvider, AuthorizationCheckerInterface $authChecker, AdminUrlGenerator $adminUrlGenerator, ?CsrfTokenManagerInterface $csrfTokenManager = null)
+    public function __construct(AdminContextProvider $adminContextProvider, AuthorizationCheckerInterface $authChecker, AdminUrlGenerator $adminUrlGenerator, CsrfTokenManagerInterface $csrfTokenManager = null)
     {
         $this->adminContextProvider = $adminContextProvider;
         $this->authChecker = $authChecker;
@@ -100,7 +100,7 @@ final class ActionFactory
         return ActionCollection::new($globalActions);
     }
 
-    private function processAction(string $pageName, ActionDto $actionDto, ?EntityDto $entityDto = null): ActionDto
+    private function processAction(string $pageName, ActionDto $actionDto, EntityDto $entityDto = null): ActionDto
     {
         $adminContext = $this->adminContextProvider->getContext();
         $translationDomain = $adminContext->getI18n()->getTranslationDomain();
@@ -154,11 +154,13 @@ final class ActionFactory
         return $actionDto;
     }
 
-    private function generateActionUrl(string $currentAction, Request $request, ActionDto $actionDto, ?EntityDto $entityDto = null): string
+    private function generateActionUrl(string $currentAction, Request $request, ActionDto $actionDto, EntityDto $entityDto = null): string
     {
+        $entityInstance = $entityDto?->getInstance();
+
         if (null !== $url = $actionDto->getUrl()) {
             if (\is_callable($url)) {
-                return null !== $entityDto ? $url($entityDto->getInstance()) : $url();
+                return null !== $entityDto ? $url($entityInstance) : $url();
             }
 
             return $url;
@@ -166,7 +168,7 @@ final class ActionFactory
 
         if (null !== $routeName = $actionDto->getRouteName()) {
             $routeParameters = $actionDto->getRouteParameters();
-            if (\is_callable($routeParameters) && null !== $entityInstance = $entityDto->getInstance()) {
+            if (\is_callable($routeParameters) && null !== $entityInstance) {
                 $routeParameters = $routeParameters($entityInstance);
             }
 

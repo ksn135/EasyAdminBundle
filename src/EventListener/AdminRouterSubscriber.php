@@ -3,7 +3,6 @@
 namespace EasyCorp\Bundle\EasyAdminBundle\EventListener;
 
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
-use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Controller\CrudControllerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Controller\DashboardControllerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Factory\AdminContextFactory;
@@ -15,7 +14,6 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Matcher\RequestMatcherInterface;
-use Twig\Environment;
 
 /**
  * This subscriber acts as a "proxy" of all backend requests. First, if the
@@ -37,16 +35,14 @@ class AdminRouterSubscriber implements EventSubscriberInterface
     private ControllerResolverInterface $controllerResolver;
     private UrlGeneratorInterface $urlGenerator;
     private RequestMatcherInterface $requestMatcher;
-    private Environment $twig;
 
-    public function __construct(AdminContextFactory $adminContextFactory, ControllerFactory $controllerFactory, ControllerResolverInterface $controllerResolver, UrlGeneratorInterface $urlGenerator, RequestMatcherInterface $requestMatcher, Environment $twig)
+    public function __construct(AdminContextFactory $adminContextFactory, ControllerFactory $controllerFactory, ControllerResolverInterface $controllerResolver, UrlGeneratorInterface $urlGenerator, RequestMatcherInterface $requestMatcher)
     {
         $this->adminContextFactory = $adminContextFactory;
         $this->controllerFactory = $controllerFactory;
         $this->controllerResolver = $controllerResolver;
         $this->urlGenerator = $urlGenerator;
         $this->requestMatcher = $requestMatcher;
-        $this->twig = $twig;
     }
 
     public static function getSubscribedEvents(): array
@@ -66,61 +62,23 @@ class AdminRouterSubscriber implements EventSubscriberInterface
      */
     public function onKernelRequest(RequestEvent $event): void
     {
-        $adminContext = null;
-        $brokenContextFailedWithException = null;
         $request = $event->getRequest();
-
-        try {
-            $adminContext = $this->getAdminContext($request);
-        } catch (\Throwable $e) {
-            $brokenContextFailedWithException = $e;
-        }
-
-        // @ksn135: we need to get adminContext anyway to setup ea variable, so try again
-        if (\is_object($brokenContextFailedWithException)) {
-            $adminContext = $this->getAdminContext($request, true);
-        }
-
-        $request->attributes->set(EA::CONTEXT_REQUEST_ATTRIBUTE, $adminContext);
-        // this makes the AdminContext available in all templates as a short named variable
-        $this->twig->addGlobal('ea', $adminContext);
-
-        // @ksn135: re-run to FAIL and show exception to user
-        // BUT now we have easy admin context in ea variable
-        // So ExceptionListener will works as expected
-        if (\is_object($brokenContextFailedWithException)) {
-            throw $brokenContextFailedWithException;
-        }
-    }
-
-    public function getAdminContext(Request $request, bool $ignore_exception = false): ?AdminContext
-    {
-        $adminContext = null;
-
         if (null === $dashboardControllerFqcn = $this->getDashboardControllerFqcn($request)) {
-            return $adminContext;
+            return;
         }
 
         if (null === $dashboardControllerInstance = $this->getDashboardControllerInstance($dashboardControllerFqcn, $request)) {
-            return $adminContext;
+            return;
         }
 
         // creating the context is expensive, so it's created once and stored in the request
         // if the current request already has an AdminContext object, do nothing
         if (null === $adminContext = $request->attributes->get(EA::CONTEXT_REQUEST_ATTRIBUTE)) {
             $crudControllerInstance = $this->getCrudControllerInstance($request);
-            $adminContext = $this
-                ->adminContextFactory
-                ->create(
-                    $request,
-                    $dashboardControllerInstance,
-                    $crudControllerInstance,
-                    $ignore_exception
-                )
-            ;
+            $adminContext = $this->adminContextFactory->create($request, $dashboardControllerInstance, $crudControllerInstance);
         }
 
-        return $adminContext;
+        $request->attributes->set(EA::CONTEXT_REQUEST_ATTRIBUTE, $adminContext);
     }
 
     /**
@@ -139,7 +97,7 @@ class AdminRouterSubscriber implements EventSubscriberInterface
         // if the request is related to a CRUD controller, change the controller to be executed
         if (null !== $crudControllerInstance = $this->getCrudControllerInstance($request)) {
             $symfonyControllerFqcnCallable = [$crudControllerInstance, $request->query->get(EA::CRUD_ACTION)];
-            $symfonyControllerStringCallable = [\get_class($crudControllerInstance), $request->query->get(EA::CRUD_ACTION)];
+            $symfonyControllerStringCallable = [$crudControllerInstance::class, $request->query->get(EA::CRUD_ACTION)];
 
             // this makes Symfony believe that another controller is being executed
             // (e.g. this is needed for the autowiring of controller action arguments)
@@ -194,7 +152,7 @@ class AdminRouterSubscriber implements EventSubscriberInterface
         }
 
         if (\is_object($controller)) {
-            $controllerFqcn = \get_class($controller);
+            $controllerFqcn = $controller::class;
         }
 
         return is_subclass_of($controllerFqcn, DashboardControllerInterface::class) ? $controllerFqcn : null;
