@@ -47,22 +47,22 @@ trait CrudTestUrlGeneration
         return $this->getCrudUrl(Action::INDEX, null, $options, $dashboardFqcn, $controllerFqcn);
     }
 
-    protected function generateNewFormUrl(string $dashboardFqcn = null, string $controllerFqcn = null): string
+    protected function generateNewFormUrl(?string $dashboardFqcn = null, ?string $controllerFqcn = null): string
     {
         return $this->getCrudUrl(Action::NEW, dashboardFqcn: $dashboardFqcn, controllerFqcn: $controllerFqcn);
     }
 
-    protected function generateEditFormUrl(string|int $id, string $dashboardFqcn = null, string $controllerFqcn = null): string
+    protected function generateEditFormUrl(string|int $id, ?string $dashboardFqcn = null, ?string $controllerFqcn = null): string
     {
         return $this->getCrudUrl(Action::EDIT, $id, dashboardFqcn: $dashboardFqcn, controllerFqcn: $controllerFqcn);
     }
 
-    protected function generateDetailUrl(string|int $id, string $dashboardFqcn = null, string $controllerFqcn = null): string
+    protected function generateDetailUrl(string|int $id, ?string $dashboardFqcn = null, ?string $controllerFqcn = null): string
     {
         return $this->getCrudUrl(Action::DETAIL, $id, dashboardFqcn: $dashboardFqcn, controllerFqcn: $controllerFqcn);
     }
 
-    protected function generateFilterRenderUrl(string $dashboardFqcn = null, string $controllerFqcn = null): string
+    protected function generateFilterRenderUrl(?string $dashboardFqcn = null, ?string $controllerFqcn = null): string
     {
         // Use the index URL as referrer but remove scheme, host and port
         $referrer = preg_replace('/^.*(\/.*)$/', '$1', $this->generateIndexUrl());
