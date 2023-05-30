@@ -7,6 +7,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\TextDirection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Scopes;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Controller\CrudControllerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Controller\DashboardControllerInterface;
@@ -17,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\DashboardDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\FilterConfigDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\I18nDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\ScopesDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Registry\CrudControllerRegistry;
 use EasyCorp\Bundle\EasyAdminBundle\Registry\TemplateRegistry;
@@ -47,11 +49,17 @@ final class AdminContextFactory
         $this->entityFactory = $entityFactory;
     }
 
-    public function create(Request $request, DashboardControllerInterface $dashboardController, ?CrudControllerInterface $crudController, bool $ignore_errors = false): AdminContext
+    public function create(Request $request, DashboardControllerInterface $dashboardController, ?CrudControllerInterface $crudController): AdminContext
     {
         $crudAction = $request->query->get(EA::CRUD_ACTION);
         $validPageNames = [Crud::PAGE_INDEX, Crud::PAGE_DETAIL, Crud::PAGE_EDIT, Crud::PAGE_NEW];
         $pageName = \in_array($crudAction, $validPageNames, true) ? $crudAction : null;
+
+        $scopesDto = null;
+        if (null !== $crudController && Crud::PAGE_INDEX === $pageName) {
+            $scopesDto = $crudController->configureScopes(Scopes::new())->getAsDto();
+            $scopesDto->processRequest($request);
+        }
 
         $dashboardDto = $this->getDashboardDto($request, $dashboardController);
         $assetDto = $this->getAssetDto($dashboardController, $crudController, $pageName);
@@ -59,8 +67,8 @@ final class AdminContextFactory
         $filters = $this->getFilters($dashboardController, $crudController);
 
         $crudDto = $this->getCrudDto($this->crudControllers, $dashboardController, $crudController, $actionConfigDto, $filters, $crudAction, $pageName);
-        $entityDto = $this->getEntityDto($request, $crudDto, $ignore_errors);
-        $searchDto = $this->getSearchDto($request, $crudDto);
+        $entityDto = $this->getEntityDto($request, $crudDto);
+        $searchDto = $this->getSearchDto($request, $crudDto, $scopesDto);
         $i18nDto = $this->getI18nDto($request, $dashboardDto, $crudDto, $entityDto);
         $templateRegistry = $this->getTemplateRegistry($dashboardController, $crudDto);
         $user = $this->getUser($this->tokenStorage);
@@ -77,8 +85,9 @@ final class AdminContextFactory
 
         foreach ($dashboardControllerRoutes as $routeName => $controller) {
             if ($controller === $dashboardController) {
-                // needed for i18n routes, whose name follows the pattern "route_name.locale"
-                $dashboardRouteName = explode('.', $routeName, 2)[0];
+                // if present, remove the suffix of i18n route names (it's a two-letter locale at the end
+                // of the route name; e.g. 'dashboard.en' -> remove '.en', 'admin.index.es' -> remove '.es')
+                $dashboardRouteName = preg_replace('~\.\w{2}$~', '', $routeName);
 
                 break;
             }
@@ -219,7 +228,7 @@ final class AdminContextFactory
         return new I18nDto($locale, $textDirection, $translationDomain, $translationParameters);
     }
 
-    public function getSearchDto(Request $request, ?CrudDto $crudDto): ?SearchDto
+    public function getSearchDto(Request $request, ?CrudDto $crudDto, ?ScopesDto $scopes): ?SearchDto
     {
         if (null === $crudDto) {
             return null;
@@ -231,7 +240,7 @@ final class AdminContextFactory
         $customSort = $queryParams[EA::SORT] ?? [];
         $appliedFilters = $queryParams[EA::FILTERS] ?? [];
 
-        return new SearchDto($request, $searchableProperties, $query, $defaultSort, $customSort, $appliedFilters);
+        return new SearchDto($request, $searchableProperties, $query, $defaultSort, $customSort, $appliedFilters, $scopes);
     }
 
     // Copied from https://github.com/symfony/twig-bridge/blob/master/AppVariable.php
@@ -247,12 +256,12 @@ final class AdminContextFactory
         return \is_object($user) ? $user : null;
     }
 
-    private function getEntityDto(Request $request, ?CrudDto $crudDto, bool $ignore_errors = false): ?EntityDto
+    private function getEntityDto(Request $request, ?CrudDto $crudDto): ?EntityDto
     {
         if (null === $crudDto) {
             return null;
         }
 
-        return $this->entityFactory->create($crudDto->getEntityFqcn(), $request->query->get(EA::ENTITY_ID), $crudDto->getEntityPermission(), $ignore_errors);
+        return $this->entityFactory->create($crudDto->getEntityFqcn(), $request->query->get(EA::ENTITY_ID), $crudDto->getEntityPermission());
     }
 }
