@@ -38,7 +38,7 @@ final class ChoiceConfigurator implements FieldConfiguratorInterface
         // in that case, get all the possible values of the Enum
         if (null === $choices && $enumsAreSupported) {
             $enumTypeClass = $field->getDoctrineMetadata()->get('enumType');
-            if (enum_exists($enumTypeClass)) {
+            if (null !== $enumTypeClass && enum_exists($enumTypeClass)) {
                 $choices = $enumTypeClass::cases();
             }
         }
@@ -96,7 +96,7 @@ final class ChoiceConfigurator implements FieldConfiguratorInterface
         $field->setFormTypeOption('attr.data-ea-autocomplete-render-items-as-html', true === $field->getCustomOption(ChoiceField::OPTION_ESCAPE_HTML_CONTENTS) ? 'false' : 'true');
 
         $fieldValue = $field->getValue();
-        $isIndexOrDetail = \in_array($context->getCrud()->getCurrentPage(), [Crud::PAGE_INDEX, Crud::PAGE_DETAIL], true);
+        $isIndexOrDetail = \in_array($context->getCrud()?->getCurrentPage(), [Crud::PAGE_INDEX, Crud::PAGE_DETAIL], true);
         if (null === $fieldValue || !$isIndexOrDetail) {
             return;
         }
