@@ -58,7 +58,7 @@ class Crud
      *
      * @psalm-param mixed $label
      */
-    public function setEntityLabelInSingular(/* @var TranslatableInterface|string|callable */ $label): self
+    public function setEntityLabelInSingular($label): self
     {
         if (!\is_string($label) && !$label instanceof TranslatableInterface && !\is_callable($label)) {
             trigger_deprecation(
@@ -82,7 +82,7 @@ class Crud
      *
      * @psalm-param mixed $label
      */
-    public function setEntityLabelInPlural(/* @var TranslatableInterface|string|callable */ $label): self
+    public function setEntityLabelInPlural($label): self
     {
         if (!\is_string($label) && !$label instanceof TranslatableInterface && !\is_callable($label)) {
             trigger_deprecation(
@@ -106,7 +106,7 @@ class Crud
      *
      * @psalm-param mixed $title
      */
-    public function setPageTitle(string $pageName, /* @var TranslatableInterface|string|callable */ $title): self
+    public function setPageTitle(string $pageName, $title): self
     {
         if (!\is_string($title) && !$title instanceof TranslatableInterface && !\is_callable($title)) {
             trigger_deprecation(

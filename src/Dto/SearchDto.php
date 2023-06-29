@@ -13,7 +13,7 @@ final class SearchDto
     private array $defaultSort;
     private array $customSort;
     /** @internal */
-    private ?array $mergedSort = null;
+    private ?array $cachedSortConfig = null;
     private string $query;
     /** @var string[]|null */
     private ?array $searchableProperties;
@@ -49,8 +49,8 @@ final class SearchDto
 
     public function getSort(): array
     {
-        if (null !== $this->mergedSort) {
-            return $this->mergedSort;
+        if (null !== $this->cachedSortConfig) {
+            return $this->cachedSortConfig;
         }
 
         // we can't use an array_merge() call because $customSort has more priority
@@ -63,7 +63,7 @@ final class SearchDto
             }
         }
 
-        return $this->mergedSort = $mergedSort;
+        return $this->cachedSortConfig = $mergedSort;
     }
 
     public function isSortingField(string $fieldProperty): bool
@@ -85,6 +85,21 @@ final class SearchDto
     public function getQuery(): string
     {
         return $this->query;
+    }
+
+    /**
+     * Splits the query search string into a set of terms to search, taking into
+     * account that quoted strings must be considered as a single term.
+     * For example:
+     *  'foo bar' => ['foo', 'bar']
+     *  'foo "bar baz" qux' => ['foo', 'bar baz', 'qux'].
+     */
+    public function getQueryTerms(): array
+    {
+        preg_match_all('/"(?:\\\\.|[^\\\\"])*"|\S+/', $this->query, $matches);
+        $terms = array_map(static fn ($match) => trim($match, '" '), $matches[0] ?? []);
+
+        return $terms;
     }
 
     /**
