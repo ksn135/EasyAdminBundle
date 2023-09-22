@@ -1,0 +1,120 @@
+name: Build
+on:
+    push:
+        branches:
+            - "4.x"
+    pull_request:
+
+jobs:
+    linter:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP, with composer and extensions
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.2
+                  coverage: none
+
+            - name: Install dependencies
+              run: |
+                  composer install
+                  vendor/bin/simple-phpunit install
+
+            - name: DOCtor-RST
+              uses: docker://oskarstark/doctor-rst
+              with:
+                  args: --short
+              env:
+                  DOCS_DIR: "doc/"
+
+            # see https://github.com/OskarStark/php-cs-fixer-ga
+            - name: PHP-CS-Fixer
+              uses: docker://oskarstark/php-cs-fixer-ga
+              with:
+                  args: --diff --dry-run
+
+    phpstan:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP, with composer and extensions
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.2
+                  coverage: none
+
+            - name: Install dependencies
+              run: |
+                  composer install
+                  vendor/bin/simple-phpunit install
+
+            - name: "Run PHPStan analysis"
+              run: vendor/bin/phpstan analyse
+
+    phpunit:
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest]
+                php_version: ["8.1", "8.2"]
+                symfony_version: ["5.4", "6.0", "6.1", "6.2", "6.3"]
+                include:
+                    # Latest Symfony version support
+                    - os: macos-latest
+                      php_version: "8.2"
+                      symfony_version: "6.3"
+                    - os: windows-latest
+                      php_version: "8.2"
+                      symfony_version: "6.3"
+                    # LTS Symfony version support
+                    - os: macos-latest
+                      php_version: "8.2"
+                      symfony_version: "5.4"
+                    - os: windows-latest
+                      php_version: "8.2"
+                      symfony_version: "5.4"
+                    # Lowest deps support
+                    - os: ubuntu-latest
+                      php_version: "8.0.2"
+                      composer_args: "--prefer-lowest"
+                    # Lowest php version support. Remove when it is dropped
+                    - os: ubuntu-latest
+                      php_version: "8.0"
+                      symfony_version: "5.4"
+                    - os: ubuntu-latest
+                      php_version: "8.0"
+                      symfony_version: "6.0"
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP, with composer and extensions
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php_version }}
+                  coverage: none
+                  extensions: mbstring, intl, pdo, pdo_sqlite, sqlite3
+                  ini-values: date.timezone=UTC
+
+            - name: symfony/flex is required to install the correct symfony version
+              if: ${{ matrix.symfony_version }}
+              run: |
+                  composer global config --no-plugins allow-plugins.symfony/flex true
+                  composer global require symfony/flex
+
+            - name: Configure Symfony version for symfony/flex
+              if: ${{ matrix.symfony_version }}
+              run: composer config extra.symfony.require "${{ matrix.symfony_version }}"
+
+            - name: Install dependencies
+              run: |
+                  composer update ${{ matrix.composer_args }}
+                  vendor/bin/simple-phpunit install
+
+            - name: Run tests
+              env:
+                  SYMFONY_DEPRECATIONS_HELPER: "weak"
+              run: vendor/bin/simple-phpunit

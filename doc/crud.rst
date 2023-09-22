@@ -204,6 +204,20 @@ Date, Time and Number Formatting Options
             // NumberField and IntegerField can override this value with their
             // own setNumberFormat() methods, which works in the same way
             ->setNumberFormat('%.2d');
+
+            // Sets the character used to separate each thousand group in a number
+            // e.g. if separator is ',' then 12345 is formatted as 12,345
+            // By default, EasyAdmin doesn't add any thousands separator to numbers;
+            // NumberField and IntegerField can override this value with their
+            // own setThousandsSeparator() methods, which works in the same way
+            ->setThousandsSeparator(',')
+
+            // Sets the character used to separate the decimal part of a non-integer number
+            // e.g. if separator is '.' then 1/10 is formatted as 0.1
+            // by default, EasyAdmin displays the default decimal separator used by PHP;
+            // NumberField and IntegerField can override this value with their
+            // own setDecimalSeparator() methods, which works in the same way
+            ->setDecimalSeparator('.')
         ;
     }
 
@@ -322,6 +336,23 @@ Templates and Form Options
                 ['validation_groups' => ['Default'], '...' => '...'],
             );
         ;
+    }
+
+Other Options
+~~~~~~~~~~~~~
+
+::
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud
+            // by default, when the value of some field is `null`, EasyAdmin displays
+            // a label with the `null` text. You can change that by overriding
+            // the `label/null` template. However, if you have lots of `null` values
+            // and want to reduce the "visual noise" in your backend, you can use
+            // the following option to not display anything when some value is `null`
+            // (this option is applied both in the `index` and `detail` pages)
+            ->hideNullValues()
     }
 
 Custom Redirect After Creating or Editing Entities

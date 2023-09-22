@@ -243,6 +243,20 @@ class Crud
         return $this;
     }
 
+    public function setThousandsSeparator(string $separator): self
+    {
+        $this->dto->setThousandsSeparator($separator);
+
+        return $this;
+    }
+
+    public function setDecimalSeparator(string $separator): self
+    {
+        $this->dto->setDecimalSeparator($separator);
+
+        return $this;
+    }
+
     /**
      * @param array $sortFieldsAndOrder ['fieldName' => 'ASC|DESC', ...]
      */
@@ -392,6 +406,13 @@ class Crud
     public function renderSidebarMinimized(bool $minimized = true): self
     {
         $this->dto->setSidebarWidth($minimized ? self::LAYOUT_SIDEBAR_COMPACT : self::LAYOUT_SIDEBAR_DEFAULT);
+
+        return $this;
+    }
+
+    public function hideNullValues(bool $hide = true): self
+    {
+        $this->dto->hideNullValues($hide);
 
         return $this;
     }

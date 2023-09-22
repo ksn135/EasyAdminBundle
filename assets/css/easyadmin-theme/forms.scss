@@ -92,9 +92,11 @@ label.form-check-label {
 .form-widget input.form-control.is-invalid,
 .form-widget textarea.form-control.is-invalid,
 .form-widget .form-select.is-invalid,
+.field-collection-item.field-collection-item-complex.is-invalid,
 .form-widget input.form-control.is-invalid:focus,
 .form-widget textarea.form-control.is-invalid:focus,
-.form-widget .form-select.is-invalid:focus {
+.form-widget .form-select.is-invalid:focus,
+.field-collection-item.field-collection-item-complex.is-invalid:focus {
     background-image: none;
     border: 1px solid var(--form-input-error-border-color);
     box-shadow: var(--form-input-error-shadow);
@@ -109,7 +111,10 @@ label.form-check-label {
 .form-widget .form-select:disabled,
 .form-widget .form-select[readonly] {
     background-color: var(--form-control-disabled-bg);
+    border-color: var(--form-input-border-color) !important;
+    box-shadow: none !important;
     color: var(--form-control-disabled-color);
+    cursor: not-allowed;
 }
 body.ea-dark-scheme .form-widget .form-select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
@@ -503,9 +508,10 @@ fieldset .legend-help {
 }
 
 .global-invalid-feedback {
-    background: var(--red-100);
+    background: var(--form-global-error-bg);
+    border: var(--form-global-error-border);
     border-radius: var(--border-radius);
-    color: var(--color-danger);
+    color: var(--form-global-error-color);
     font-size:  14px;
     margin:  5px 0;
     padding: 6px 12px;
