@@ -44,6 +44,7 @@ Encore
             ]
         };
     })
+    // .enableStimulusBridge('./assets/controllers.json')
 
     .addEntry('app', './assets/js/app.js')
     .addEntry('form', './assets/js/form.js')

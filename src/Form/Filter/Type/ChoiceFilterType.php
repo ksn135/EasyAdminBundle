@@ -24,14 +24,14 @@ class ChoiceFilterType extends AbstractType
             static function ($data) use ($multiple) {
                 switch ($data['comparison']) {
                     case ComparisonType::EQ:
-                        if (null === $data['value'] || ($multiple && 0 === \count($data['value']))) {
+                        if (null === ($data['value'] ?? null) || ($multiple && 0 === \count($data['value']))) {
                             $data['comparison'] = 'IS NULL';
                         } else {
                             $data['comparison'] = $multiple ? 'IN' : '=';
                         }
                         break;
                     case ComparisonType::NEQ:
-                        if (null === $data['value'] || ($multiple && 0 === \count($data['value']))) {
+                        if (null === ($data['value'] ?? null) || ($multiple && 0 === \count($data['value']))) {
                             $data['comparison'] = 'IS NOT NULL';
                         } else {
                             $data['comparison'] = $multiple ? 'NOT IN' : '!=';
