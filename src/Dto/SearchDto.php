@@ -22,7 +22,7 @@ final class SearchDto
     /** @var string[]|null */
     private ?array $appliedFilters;
     private string $searchMode;
-     
+
     public function __construct(Request $request, ?array $searchableProperties, ?string $query, array $defaultSort, array $customSort, ?array $appliedFilters, string $searchMode = SearchMode::ALL_TERMS, ?ScopesDto $scopes = null)
     {
         $this->request = $request;
