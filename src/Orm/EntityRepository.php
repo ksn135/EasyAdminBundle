@@ -4,11 +4,13 @@ namespace EasyCorp\Bundle\EasyAdminBundle\Orm;
 
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SearchMode;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\Orm\EntityRepositoryInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\FilterDataDto;
@@ -16,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Event\AfterEntitySearchEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Factory\EntityFactory;
 use EasyCorp\Bundle\EasyAdminBundle\Factory\FormFactory;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\ComparisonType;
 use EasyCorp\Bundle\EasyAdminBundle\Provider\AdminContextProvider;
 use Symfony\Component\Uid\Ulid;
@@ -67,7 +70,7 @@ final class EntityRepository implements EntityRepositoryInterface
             $this->addFilterClause($queryBuilder, $searchDto, $entityDto, $filters, $fields);
         }
 
-        $this->addOrderClause($queryBuilder, $searchDto, $entityDto);
+        $this->addOrderClause($queryBuilder, $searchDto, $entityDto, $fields);
 
         return $queryBuilder;
     }
@@ -96,6 +99,7 @@ final class EntityRepository implements EntityRepositoryInterface
                 'text_query' => '%'.$lowercaseQueryTerm.'%',
             ];
 
+            $queryTermConditions = new Orx();
             foreach ($searchablePropertiesConfig as $propertyConfig) {
                 $entityName = $propertyConfig['entity_name'];
 
@@ -106,33 +110,39 @@ final class EntityRepository implements EntityRepositoryInterface
                     || ($propertyConfig['is_numeric'] && $isNumericQueryTerm)
                 ) {
                     $parameterName = sprintf('query_for_numbers_%d', $queryTermIndex);
-                    $queryBuilder->orWhere(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName))
-                        ->setParameter($parameterName, $dqlParameters['numeric_query']);
+                    $queryTermConditions->add(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName));
+                    $queryBuilder->setParameter($parameterName, $dqlParameters['numeric_query']);
                 } elseif ($propertyConfig['is_guid'] && $isUuidQueryTerm) {
                     $parameterName = sprintf('query_for_uuids_%d', $queryTermIndex);
-                    $queryBuilder->orWhere(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName))
-                        ->setParameter($parameterName, $dqlParameters['uuid_query'], 'uuid' === $propertyConfig['property_data_type'] ? 'uuid' : null);
+                    $queryTermConditions->add(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName));
+                    $queryBuilder->setParameter($parameterName, $dqlParameters['uuid_query'], 'uuid' === $propertyConfig['property_data_type'] ? 'uuid' : null);
                 } elseif ($propertyConfig['is_ulid'] && $isUlidQueryTerm) {
                     $parameterName = sprintf('query_for_ulids_%d', $queryTermIndex);
-                    $queryBuilder->orWhere(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName))
-                        ->setParameter($parameterName, $dqlParameters['uuid_query'], 'ulid');
-                } elseif ($propertyConfig['is_text']) {
+                    $queryTermConditions->add(sprintf('%s.%s = :%s', $entityName, $propertyConfig['property_name'], $parameterName));
+                    $queryBuilder->setParameter($parameterName, $dqlParameters['uuid_query'], 'ulid');
+                } elseif ($propertyConfig['is_text'] || $propertyConfig['is_integer']) {
                     $parameterName = sprintf('query_for_text_%d', $queryTermIndex);
-                    $queryBuilder->orWhere(sprintf('LOWER(%s.%s) LIKE :%s', $entityName, $propertyConfig['property_name'], $parameterName))
-                        ->setParameter($parameterName, $dqlParameters['text_query']);
+                    // concatenating an empty string is needed to avoid issues on PostgreSQL databases (https://github.com/EasyCorp/EasyAdminBundle/issues/6290)
+                    $queryTermConditions->add(sprintf('LOWER(CONCAT(%s.%s, \'\')) LIKE :%s', $entityName, $propertyConfig['property_name'], $parameterName));
+                    $queryBuilder->setParameter($parameterName, $dqlParameters['text_query']);
                 } elseif ($propertyConfig['is_json'] && !$isPostgreSql) {
                     // neither LOWER() nor LIKE() are supported for JSON columns by all PostgreSQL installations
                     $parameterName = sprintf('query_for_text_%d', $queryTermIndex);
-                    $queryBuilder->orWhere(sprintf('LOWER(%s.%s) LIKE :%s', $entityName, $propertyConfig['property_name'], $parameterName))
-                        ->setParameter($parameterName, $dqlParameters['text_query']);
+                    $queryTermConditions->add(sprintf('LOWER(%s.%s) LIKE :%s', $entityName, $propertyConfig['property_name'], $parameterName));
+                    $queryBuilder->setParameter($parameterName, $dqlParameters['text_query']);
                 }
+            }
+            if (SearchMode::ALL_TERMS === $searchDto->getSearchMode()) {
+                $queryBuilder->andWhere($queryTermConditions);
+            } else {
+                $queryBuilder->orWhere($queryTermConditions);
             }
         }
 
         $this->eventDispatcher->dispatch(new AfterEntitySearchEvent($queryBuilder, $searchDto, $entityDto));
     }
 
-    private function addOrderClause(QueryBuilder $queryBuilder, SearchDto $searchDto, EntityDto $entityDto): void
+    private function addOrderClause(QueryBuilder $queryBuilder, SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields): void
     {
         foreach ($searchDto->getSort() as $sortProperty => $sortOrder) {
             $aliases = $queryBuilder->getAllAliases();
@@ -153,7 +163,7 @@ final class EntityRepository implements EntityRepositoryInterface
                         $entityManager = $this->doctrine->getManagerForClass($entityDto->getFqcn());
                         $countQueryBuilder = $entityManager->createQueryBuilder();
 
-                        if (ClassMetadataInfo::MANY_TO_MANY === $metadata->get('type')) {
+                        if (ClassMetadata::MANY_TO_MANY === $metadata->get('type')) {
                             // many-to-many relation
                             $countQueryBuilder
                                 ->select($queryBuilder->expr()->count('subQueryEntity'))
@@ -172,7 +182,14 @@ final class EntityRepository implements EntityRepositoryInterface
                         $queryBuilder->addOrderBy('sub_query_sort', $sortOrder);
                         $queryBuilder->addOrderBy('entity.'.$entityDto->getPrimaryKeyName(), $sortOrder);
                     } else {
-                        $queryBuilder->addOrderBy('entity.'.$sortProperty, $sortOrder);
+                        $field = $fields->getByProperty($sortProperty);
+                        $associationSortProperty = $field?->getCustomOption(AssociationField::OPTION_SORT_PROPERTY);
+
+                        if (null === $associationSortProperty) {
+                            $queryBuilder->addOrderBy('entity.'.$sortProperty, $sortOrder);
+                        } else {
+                            $queryBuilder->addOrderBy($sortProperty.'.'.$associationSortProperty, $sortOrder);
+                        }
                     }
                 } else {
                     $queryBuilder->addOrderBy($sortProperty, $sortOrder);

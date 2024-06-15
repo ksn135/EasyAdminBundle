@@ -2,6 +2,7 @@
 
 namespace EasyCorp\Bundle\EasyAdminBundle\Dto;
 
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SearchMode;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -12,6 +13,7 @@ final class SearchDto
     private Request $request;
     private array $defaultSort;
     private array $customSort;
+    private ?ScopesDto $scopes = null;
     /** @internal */
     private ?array $cachedSortConfig = null;
     private string $query;
@@ -19,17 +21,18 @@ final class SearchDto
     private ?array $searchableProperties;
     /** @var string[]|null */
     private ?array $appliedFilters;
-    private ?ScopesDto $scopes = null;
-
-    public function __construct(Request $request, ?array $searchableProperties, ?string $query, array $defaultSort, array $customSort, ?array $appliedFilters, ?ScopesDto $scopes = null)
+    private string $searchMode;
+     
+    public function __construct(Request $request, ?array $searchableProperties, ?string $query, array $defaultSort, array $customSort, ?array $appliedFilters, string $searchMode = SearchMode::ALL_TERMS, ?ScopesDto $scopes = null)
     {
         $this->request = $request;
         $this->searchableProperties = $searchableProperties;
         $this->query = trim((string) $query);
         $this->defaultSort = $defaultSort;
         $this->customSort = $customSort;
-        $this->appliedFilters = $appliedFilters;
         $this->scopes = $scopes;
+        $this->appliedFilters = $appliedFilters;
+        $this->searchMode = $searchMode;
     }
 
     public function getScopes(): ?ScopesDto
@@ -113,5 +116,10 @@ final class SearchDto
     public function getAppliedFilters(): ?array
     {
         return $this->appliedFilters;
+    }
+
+    public function getSearchMode(): string
+    {
+        return $this->searchMode;
     }
 }

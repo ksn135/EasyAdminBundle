@@ -33,7 +33,11 @@ final class CommonPostConfigurator implements FieldConfiguratorInterface
 
     public function configure(FieldDto $field, EntityDto $entityDto, AdminContext $context): void
     {
-        if (\in_array($context->getCrud()?->getCurrentPage(), [Crud::PAGE_INDEX, Crud::PAGE_DETAIL], true)) {
+        // EasyAdmin by default allows using HTML contents in labels, help messages, etc.
+        // so we must enable the 'label_html' form option unless a field has configured it explicitly
+        $field->setFormTypeOptionIfNotSet('label_html', true);
+
+        if (\in_array($context->getCrud()->getCurrentPage(), [Crud::PAGE_INDEX, Crud::PAGE_DETAIL], true)) {
             $formattedValue = $this->buildFormattedValueOption($field->getFormattedValue(), $field, $entityDto);
             $field->setFormattedValue($formattedValue);
         }
@@ -47,7 +51,7 @@ final class CommonPostConfigurator implements FieldConfiguratorInterface
             return $value;
         }
 
-        $formatted = $callable($value, $entityDto->getInstance());
+        $formatted = $callable($field->getValue(), $entityDto->getInstance());
 
         // if the callable returns a string, wrap it in a Twig Markup to render the
         // HTML and CSS/JS elements that it might contain

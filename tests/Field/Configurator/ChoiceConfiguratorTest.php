@@ -2,7 +2,7 @@
 
 namespace EasyCorp\Bundle\EasyAdminBundle\Tests\Field\Configurator;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -26,7 +26,7 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
 
         $this->configurator = new ChoiceConfigurator();
 
-        $metadata = new ClassMetadataInfo(self::ENTITY_CLASS);
+        $metadata = new ClassMetadata(self::ENTITY_CLASS);
         $metadata->setIdentifier(['id']);
         $this->entity = new EntityDto(self::ENTITY_CLASS, $metadata);
     }
@@ -51,7 +51,12 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
         $field = ChoiceField::new(self::PROPERTY_NAME);
         $field->getAsDto()->setDoctrineMetadata(['enumType' => StatusBackedEnum::class]);
 
-        $this->assertSame($this->configure($field)->getFormTypeOption('choices'), StatusBackedEnum::cases());
+        $formChoices = array_combine(
+            array_column(StatusBackedEnum::cases(), 'name'),
+            StatusBackedEnum::cases(),
+        );
+
+        $this->assertSame($this->configure($field)->getFormTypeOption('choices'), $formChoices);
     }
 
     public function testBackedEnumChoices(): void
@@ -63,7 +68,7 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
 
         $expected = [];
         foreach (StatusBackedEnum::cases() as $case) {
-            $expected[$case->name] = $case->value;
+            $expected[$case->name] = $case;
         }
 
         $this->assertSame($this->configure($field)->getFormTypeOption('choices'), $expected);
@@ -76,7 +81,12 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
         $field = ChoiceField::new(self::PROPERTY_NAME);
         $field->getAsDto()->setDoctrineMetadata(['enumType' => PriorityUnitEnum::class]);
 
-        $this->assertSame($this->configure($field)->getFormTypeOption('choices'), PriorityUnitEnum::cases());
+        $formChoices = array_combine(
+            array_column(PriorityUnitEnum::cases(), 'name'),
+            PriorityUnitEnum::cases(),
+        );
+
+        $this->assertSame($this->configure($field)->getFormTypeOption('choices'), $formChoices);
     }
 
     public function testUnitEnumChoices(): void
@@ -88,7 +98,7 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
 
         $expected = [];
         foreach (PriorityUnitEnum::cases() as $case) {
-            $expected[$case->name] = $case->name;
+            $expected[$case->name] = $case;
         }
 
         $this->assertSame($this->configure($field)->getFormTypeOption('choices'), $expected);
@@ -106,5 +116,20 @@ class ChoiceConfiguratorTest extends AbstractFieldTest
         if (\PHP_VERSION_ID < 80100) {
             $this->markTestSkipped('PHP 8.1 or higher is required to run this test.');
         }
+    }
+
+    public function testBackedEnumChoicesLabeled(): void
+    {
+        $this->checkPhpVersion();
+
+        $choices = [];
+        foreach (StatusBackedEnum::cases() as $case) {
+            $choices[$case->label()] = $case;
+        }
+
+        $field = ChoiceField::new(self::PROPERTY_NAME);
+        $field->setCustomOptions(['choices' => $choices]);
+
+        $this->assertSame($choices, $this->configure($field)->getFormTypeOption('choices'));
     }
 }

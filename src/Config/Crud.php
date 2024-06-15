@@ -2,12 +2,14 @@
 
 namespace EasyCorp\Bundle\EasyAdminBundle\Config;
 
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SearchMode;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SortOrder;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\ColumnStorage\SelectedColumnStorageProviderInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\CrudDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\FilterConfigDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\PaginatorDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
 /**
@@ -285,6 +287,17 @@ class Crud
         return $this;
     }
 
+    public function setSearchMode(string $searchMode): self
+    {
+        if (!\in_array($searchMode, [SearchMode::ANY_TERMS, SearchMode::ALL_TERMS], true)) {
+            throw new \InvalidArgumentException(sprintf('The search mode can be only "%s" or "%s", "%s" given.', SearchMode::ANY_TERMS, SearchMode::ALL_TERMS, $searchMode));
+        }
+
+        $this->dto->setSearchMode($searchMode);
+
+        return $this;
+    }
+
     public function setAutofocusSearch(bool $autofocusSearch = true): self
     {
         $this->dto->setAutofocusSearch($autofocusSearch);
@@ -389,7 +402,7 @@ class Crud
         return $this;
     }
 
-    public function setEntityPermission(string $permission): self
+    public function setEntityPermission(string|Expression $permission): self
     {
         $this->dto->setEntityPermission($permission);
 

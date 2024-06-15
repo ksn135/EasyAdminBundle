@@ -57,11 +57,11 @@ class PageSortTest extends AbstractCrudTestCase
 
         $index = 1;
 
-        foreach ($expectedAmountMapping as $expectedName => $expectedValue) {
+        foreach ($expectedAmountMapping as $expectedPageName => $expectedWebsiteName) {
             $expectedRow = $index++;
 
-            $this->assertSelectorTextSame('tbody tr:nth-child('.$expectedRow.') td:nth-child(2)', $expectedName, sprintf('Expected "%s" in row %d', $expectedName, $expectedRow));
-            $this->assertSelectorTextSame('tbody tr:nth-child('.$expectedRow.') td:nth-child(3)', $expectedValue, sprintf('Expected "%s" in row %d', $expectedValue, $expectedRow));
+            $this->assertSelectorTextSame('tbody tr:nth-child('.$expectedRow.') td:nth-child(2)', $expectedPageName, sprintf('Expected "%s" in row %d', $expectedPageName, $expectedRow));
+            $this->assertSelectorTextSame('tbody tr:nth-child('.$expectedRow.') td:nth-child(3)', $expectedWebsiteName, sprintf('Expected "%s" in row %d', $expectedWebsiteName, $expectedRow));
         }
     }
 

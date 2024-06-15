@@ -58,35 +58,48 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                os: [ubuntu-latest]
-                php_version: ["8.1", "8.2"]
-                symfony_version: ["5.4", "6.0", "6.1", "6.2", "6.3"]
                 include:
                     # Latest Symfony version support
                     - os: macos-latest
-                      php_version: "8.2"
-                      symfony_version: "6.3"
+                      php_version: "8.3"
+                      symfony_version: "7.0"
+                      stability: "stable"
                     - os: windows-latest
-                      php_version: "8.2"
-                      symfony_version: "6.3"
+                      php_version: "8.3"
+                      symfony_version: "7.0"
+                      stability: "stable"
                     # LTS Symfony version support
                     - os: macos-latest
-                      php_version: "8.2"
-                      symfony_version: "5.4"
+                      php_version: "8.3"
+                      symfony_version: "6.4"
+                      stability: "stable"
                     - os: windows-latest
-                      php_version: "8.2"
-                      symfony_version: "5.4"
+                      php_version: "8.3"
+                      symfony_version: "6.4"
+                      stability: "stable"
                     # Lowest deps support
                     - os: ubuntu-latest
                       php_version: "8.0.2"
                       composer_args: "--prefer-lowest"
-                    # Lowest php version support. Remove when it is dropped
+                      stability: "stable"
+                    # Lowest PHP version support. Remove when it is dropped
                     - os: ubuntu-latest
                       php_version: "8.0"
                       symfony_version: "5.4"
+                      stability: "stable"
                     - os: ubuntu-latest
-                      php_version: "8.0"
-                      symfony_version: "6.0"
+                      php_version: "8.2"
+                      symfony_version: "6.4"
+                      stability: "stable"
+                    - os: ubuntu-latest
+                      php_version: "8.3"
+                      symfony_version: "7.0"
+                      stability: "stable"
+                    # Upcoming Symfony versions
+                    - os: ubuntu-latest
+                      php_version: "8.3"
+                      symfony_version: "7.1.x-dev"
+                      stability: "dev"
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v4
@@ -105,6 +118,10 @@ jobs:
                   composer global config --no-plugins allow-plugins.symfony/flex true
                   composer global require symfony/flex
 
+            - name: Configure Composer stability
+              run: |
+                  composer config minimum-stability ${{ matrix.stability }}
+
             - name: Configure Symfony version for symfony/flex
               if: ${{ matrix.symfony_version }}
               run: composer config extra.symfony.require "${{ matrix.symfony_version }}"
@@ -115,6 +132,7 @@ jobs:
                   vendor/bin/simple-phpunit install
 
             - name: Run tests
+              continue-on-error: ${{ matrix.stability == 'dev' }}
               env:
                   SYMFONY_DEPRECATIONS_HELPER: "weak"
               run: vendor/bin/simple-phpunit

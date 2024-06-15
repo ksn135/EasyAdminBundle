@@ -176,6 +176,47 @@ permissions to see some items:
 .. image:: images/easyadmin-list-hidden-results.png
    :alt: Index page with some results hidden because user does not have enough permissions
 
+.. _security-expressions:
+
+Restricting Access with Expressions
+-----------------------------------
+
+.. versionadded:: 4.9.0
+
+    The Expressions support was introduced in EasyAdmin 4.9.0.
+
+The `Symfony ExpressionLanguage component`_ allows to define complex configuration
+logic using simple expressions. In EasyAdmin, all ``setPermission()`` methods
+allow to pass not only a string with some security role name (e.g. ``ROLE_ADMIN``)
+but also a full ``Expression`` object.
+
+First, install the component in your project using Composer:
+
+.. code-block:: terminal
+
+    $ composer require symfony/expression-language
+
+Now, you can pass a Symfony Expression object to any ``setPermission()`` method
+like this:
+
+.. code-block:: php
+
+    use Symfony\Component\ExpressionLanguage\Expression;
+
+    MenuItem::linkToCrud('Restricted menu-item', null, Example::class)
+        ->setPermission(new Expression('"ROLE_DEVELOPER" in role_names and "ROLE_EXTERNAL" not in role_names'));
+
+Expressions enable the definition of much more detailed permissions, based on
+several role names, user attributes, or the given subject. The expressions can
+include any of these variables:
+
+* ``user`` - the current user object
+* ``role_names`` - all the roles of current user as an array
+* ``subject`` or ``object`` - the current subject being checked
+* ``token`` - the authentication token
+* ``trust_resolver`` - the authentication trust resolver
+* ``auth_checker`` - an instance of the authorization checker service
+
 Custom Security Voters
 ----------------------
 
@@ -206,3 +247,4 @@ grants access only if there are no voters denying access:
 .. _`access_control option`: https://symfony.com/doc/current/security/access_control.html
 .. _`security voter`: https://symfony.com/doc/current/security/voters.html
 .. _`access decision strategy`: https://symfony.com/doc/current/security/voters.html#changing-the-access-decision-strategy
+.. _`Symfony ExpressionLanguage component`: https://symfony.com/doc/current/components/expression_language.html

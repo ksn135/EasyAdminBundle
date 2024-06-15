@@ -7,12 +7,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\BreadcrumbItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SearchMode;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\ColumnStorage\SelectedColumnStorageProviderInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormPanelType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormRowType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EasyAdminTabType;
 use EasyCorp\Bundle\EasyAdminBundle\Translation\TranslatableMessageBuilder;
+use Symfony\Component\ExpressionLanguage\Expression;
 use function Symfony\Component\Translation\t;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
@@ -62,6 +64,7 @@ final class CrudDto
     private ?string $decimalSeparator = null;
     private array $defaultSort = [];
     private ?array $searchFields = [];
+    private string $searchMode = SearchMode::ALL_TERMS;
     private bool $autofocusSearch = false;
     private bool $showEntityActionsAsDropdown = true;
     private ?PaginatorDto $paginatorDto = null;
@@ -69,7 +72,7 @@ final class CrudDto
     private array $formThemes = ['@EasyAdmin/crud/form_theme.html.twig'];
     private KeyValueStore $newFormOptions;
     private KeyValueStore $editFormOptions;
-    private ?string $entityPermission = null;
+    private string|Expression|null $entityPermission = null;
     private ?string $contentWidth = null;
     private ?string $sidebarWidth = null;
     private bool $hideNullValues = false;
@@ -369,6 +372,16 @@ final class CrudDto
         $this->defaultSort = $defaultSort;
     }
 
+    public function getSearchMode(): string
+    {
+        return $this->searchMode;
+    }
+
+    public function setSearchMode(string $searchMode): void
+    {
+        $this->searchMode = $searchMode;
+    }
+
     public function getSearchFields(): ?array
     {
         return $this->searchFields;
@@ -460,12 +473,12 @@ final class CrudDto
         $this->editFormOptions = $formOptions;
     }
 
-    public function getEntityPermission(): ?string
+    public function getEntityPermission(): string|Expression|null
     {
         return $this->entityPermission;
     }
 
-    public function setEntityPermission(string $entityPermission): void
+    public function setEntityPermission(string|Expression $entityPermission): void
     {
         $this->entityPermission = $entityPermission;
     }
