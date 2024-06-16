@@ -67,8 +67,8 @@
 {% endblock %}
 
 {% macro render_field_contents(entity, field, variables) %}
-    <div class="field-group {{ field.cssClass }}">
-        {% if field.label is same as (false) %}
+    <div class="field-group data-{% if field.fullWidth %}full-width-{% endif %}row {{ field.cssClass }}">
+        {% if field.label is same as (false) or field.fullWidth %}
             {# a FALSE label value means that the field doesn't even display the <label> element;
                use an empty string to not display a label but keep the <label> element to not mess with the layout #}
         {% else %}
