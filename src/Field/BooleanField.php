@@ -35,7 +35,7 @@ final class BooleanField implements FieldInterface
             ->setTemplateName('crud/field/boolean')
             ->setFormType(CheckboxType::class)
             ->addCssClass('field-boolean')
-            ->addJsFiles(Asset::fromEasyAdminAssetPackage('field-boolean.js')->onlyOnIndex())
+            ->addJsFiles(Asset::fromEasyAdminAssetPackage('field-boolean.js')->ignoreOnForm())
             ->setCustomOption(self::OPTION_RENDER_AS_SWITCH, true)
             ->setCustomOption(self::OPTION_HIDE_VALUE_WHEN_TRUE, false)
             ->setCustomOption(self::OPTION_HIDE_VALUE_WHEN_FALSE, false);
