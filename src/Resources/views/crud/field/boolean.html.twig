@@ -3,7 +3,7 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {% trans_default_domain 'EasyAdminBundle' %}
 
-{% if  not field.customOptions.get('renderAsSwitch') %}
+{% if not field.customOptions.get('renderAsSwitch') %}
     {% set badge_is_hidden = ea.crud.currentAction == 'index'
         and (
             (field.value == true and field.customOptions.get('hideValueWhenTrue') == true)
