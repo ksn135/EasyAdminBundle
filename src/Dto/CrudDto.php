@@ -638,6 +638,10 @@ final class CrudDto
             $dto = $iterator->current();
             $columnName = $dto->getProperty();
             $label = $dto->getLabel() ?? Action::humanizeString($columnName);
+            if (false === $label) {
+                $iterator->next();
+                continue;
+            }
             $this->allColumnsLabels[$columnName] = $label;
             if (!$this->isSpecialFormType($dto->getFormType())
                 && !\in_array($columnName, $this->indexExcludeColumns, true)
