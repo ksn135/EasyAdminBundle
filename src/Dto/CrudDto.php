@@ -13,6 +13,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormPanelType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormRowType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EasyAdminTabType;
+use EasyCorp\Bundle\EasyAdminBundle\Form\Type\Layout\EaFormFieldsetOpenType;
+use EasyCorp\Bundle\EasyAdminBundle\Form\Type\Layout\EaFormTabPaneOpenType;
 use EasyCorp\Bundle\EasyAdminBundle\Translation\TranslatableMessageBuilder;
 use Symfony\Component\ExpressionLanguage\Expression;
 use function Symfony\Component\Translation\t;
@@ -592,6 +594,8 @@ final class CrudDto
     public function isSpecialFormType(?string $formType): bool
     {
         return null !== $formType && \in_array($formType, [
+            EaFormTabPaneOpenType::class,
+            EaFormFieldsetOpenType::class,
             EaFormPanelType::class,
             EaFormRowType::class,
             EasyAdminTabType::class,
