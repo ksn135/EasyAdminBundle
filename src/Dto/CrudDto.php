@@ -10,6 +10,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\SearchMode;
 use EasyCorp\Bundle\EasyAdminBundle\Contracts\ColumnStorage\SelectedColumnStorageProviderInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormColumnType;
+use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormFieldsetType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormPanelType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EaFormRowType;
 use EasyCorp\Bundle\EasyAdminBundle\Form\Type\EasyAdminTabType;
@@ -616,7 +618,10 @@ final class CrudDto
             EaFormTabListType::class,
             EaFormTabPaneCloseType::class,
             EaFormTabPaneGroupCloseType::class,
-            EaFormTabPaneGroupOpenType::class,            
+            EaFormTabPaneGroupOpenType::class,
+            EaFormColumnType::class,
+            EaFormFieldsetType::class,
+
         ], true);
     }
 
