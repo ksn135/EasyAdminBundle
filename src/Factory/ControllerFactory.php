@@ -50,11 +50,12 @@ final class ControllerFactory
             return null;
         }
 
+        $controllerFqcn = str_replace('%5C', '\\', $controllerFqcn);
         $newRequest = $request->duplicate(null, null, ['_controller' => [$controllerFqcn, $controllerAction]]);
         $controllerCallable = $this->controllerResolver->getController($newRequest);
 
         if (false === $controllerCallable) {
-            throw new NotFoundHttpException(sprintf('Unable to find the controller "%s::%s".', $controllerFqcn, $controllerAction));
+            throw new NotFoundHttpException(\sprintf('Unable to find the controller "%s::%s".', $controllerFqcn, $controllerAction));
         }
 
         if (!\is_array($controllerCallable)) {
