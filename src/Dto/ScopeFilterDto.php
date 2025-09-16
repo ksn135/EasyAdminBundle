@@ -15,7 +15,8 @@ final class ScopeFilterDto
         private string|array|null $value = null,
         private string $comparison = ComparisonType::EQ,
         private ?string $value2 = null,
-        private ?bool $unset = false
+        private ?bool $unset = false,
+        private ?bool $skip = false
     ) {
         if (!\in_array($comparison, (new \ReflectionClass(ComparisonType::class))->getConstants(), true)) {
             throw new \InvalidArgumentException(sprintf('Comparison "%s" is not supported.', $comparison));
@@ -35,6 +36,10 @@ final class ScopeFilterDto
         } else {
             if (!isset($filters[$this->propertyName])) {
                 $filters[$this->propertyName] = [];
+            } else {
+                if ($this->skip) {
+                    return;
+                }
             }
             $filters[$this->propertyName]['comparison'] = $this->comparison;
             $filters[$this->propertyName]['value'] = $this->value;

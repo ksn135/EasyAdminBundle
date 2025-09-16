@@ -18,9 +18,9 @@ final class ScopeButtonDto
     private array $filters = [];
     private bool $active = false;
 
-    public function addFilter(ScopeFilterDto|string $propertyName, string|array|null $value = null, string $comparison = ComparisonType::EQ, ?string $value2 = null): self
+    public function addFilter(ScopeFilterDto|string $propertyName, string|array|null $value = null, string $comparison = ComparisonType::EQ, ?string $value2 = null, ?bool $skip = false): self
     {
-        $this->filters[] = $propertyName instanceof ScopeFilterDto ? $propertyName : new ScopeFilterDto($propertyName, $value, $comparison, $value2);
+        $this->filters[] = $propertyName instanceof ScopeFilterDto ? $propertyName : new ScopeFilterDto($propertyName, $value, $comparison, $value2, false, $skip);
 
         return $this;
     }
