@@ -32,7 +32,7 @@ final class ScopeFilterDto
     {
         $filters = $request->query->all()['filters'] ?? [];
         if ($this->unset) {
-            if (! $this->skip) {
+            if ($this->skip) {
                 return;
             }
             unset($filters[$this->propertyName]);
