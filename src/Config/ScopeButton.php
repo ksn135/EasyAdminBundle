@@ -36,9 +36,9 @@ final class ScopeButton
         return $this;
     }
 
-    public function unsetFilter(string $propertyName): self
+    public function unsetFilter(string $propertyName, ?bool $skip = false): self
     {
-        $this->dto->unsetFilter($propertyName);
+        $this->dto->unsetFilter($propertyName, $skip);
 
         return $this;
     }
