@@ -194,32 +194,34 @@ class App {
     }
 
     #createFilters() {
-        const filterButton = document.querySelector('.datagrid-filters .action-filters-button');
-        if (null === filterButton) {
+        const filterButtons = document.querySelector('.datagrid-filters .action-filters-button, .header-column-filters-button');
+        if (! filterButtons.length) {
             return;
         }
+        filterButtons.forEach((filterButton) => {
 
-        const filterModal = document.querySelector(filterButton.getAttribute('data-bs-target'));
+            const filterModal = document.querySelector(filterButton.getAttribute('data-bs-target'));
 
-        // this is needed to avoid errors when connection is slow
-        filterButton.setAttribute('href', filterButton.getAttribute('data-href'));
-        filterButton.removeAttribute('data-href');
-        filterButton.classList.remove('disabled');
+            // this is needed to avoid errors when connection is slow
+            filterButton.setAttribute('href', filterButton.getAttribute('data-href'));
+            filterButton.removeAttribute('data-href');
+            filterButton.classList.remove('disabled');
 
-        filterButton.addEventListener('click', (event) => {
-            const filterModalBody = filterModal.querySelector('.modal-body');
-            filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
+            filterButton.addEventListener('click', (event) => {
+                const filterModalBody = filterModal.querySelector('.modal-body');
+                filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
-            fetch(filterButton.getAttribute('href'))
-                .then((response) => { return response.text(); })
-                .then((text) => {
-                    filterModalBody.innerHTML = text;
-                    this.#createAutoCompleteFields();
-                    this.#createFilterToggles();
-                })
-                .catch((error) => { console.error(error); });
+                fetch(filterButton.getAttribute('href'))
+                    .then((response) => { return response.text(); })
+                    .then((text) => {
+                        filterModalBody.innerHTML = text;
+                        this.#createAutoCompleteFields();
+                        this.#createFilterToggles();
+                    })
+                    .catch((error) => { console.error(error); });
 
-            event.preventDefault();
+                event.preventDefault();
+            });
         });
 
         const removeFilter = (filterField) => {
