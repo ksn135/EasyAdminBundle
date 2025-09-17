@@ -193,14 +193,51 @@ class App {
         highlighter.markRegExp(searchQueryTermsHighlightRegexp);
     }
 
+    // Функция для позиционирования модального окна рядом с кнопкой
+    #positionModalNearButton(button, modal, modalDialog) {
+        const buttonRect = button.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const modalWidth = 400; // Ширина модального окна
+        const modalHeight = 300; // Примерная высота модального окна
+        
+        // Убираем центрирование
+        modalDialog.classList.remove('modal-dialog-centered');
+        modalDialog.style.position = 'fixed';
+        modalDialog.style.margin = '0';
+        
+        // Вычисляем позицию
+        let left = buttonRect.left + (buttonRect.width / 2) - (modalWidth / 2);
+        let top = buttonRect.bottom + 10; // 10px отступ от кнопки
+        
+        // Проверяем, не выходит ли модальное окно за границы экрана
+        if (left < 10) {
+            left = 10;
+        } else if (left + modalWidth > viewportWidth - 10) {
+            left = viewportWidth - modalWidth - 10;
+        }
+        
+        if (top + modalHeight > viewportHeight - 10) {
+            // Если не помещается снизу, показываем сверху
+            top = buttonRect.top - modalHeight - 10;
+        }
+        
+        // Применяем позицию
+        modalDialog.style.left = left + 'px';
+        modalDialog.style.top = top + 'px';
+        modalDialog.style.width = modalWidth + 'px';
+        modalDialog.style.maxWidth = 'none';
+    }    
+
     #createFilters() {
-        const filterButtons = document.querySelectorAll('.datagrid-filters .action-filters-button, .header-column-filters-button');
+        const filterButtons = document.querySelector('.datagrid-filters .action-filters-button, .header-column-filters-button');
         if (! filterButtons.length) {
             return;
         }
         filterButtons.forEach((filterButton) => {
 
             const filterModal = document.querySelector(filterButton.getAttribute('data-bs-target'));
+            const modalDialog = filterModal.querySelector('.modal-dialog');
 
             // this is needed to avoid errors when connection is slow
             filterButton.setAttribute('href', filterButton.getAttribute('data-href'));
@@ -208,6 +245,10 @@ class App {
             filterButton.classList.remove('disabled');
 
             filterButton.addEventListener('click', (event) => {
+
+                // Позиционируем модальное окно рядом с кнопкой
+                this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+
                 const filterModalBody = filterModal.querySelector('.modal-body');
                 filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
@@ -216,10 +257,9 @@ class App {
                     .then((text) => {
                         filterModalBody.innerHTML = text;
                         this.#createAutoCompleteFields();
-                        this.#createFilterToggles();
-
-                        const buttons = filterModalBody.querySelectorAll('input.filter-checkbox:not(:checked)');
-                        if (buttons.length == 1) buttons[0].click();
+                        if(! filterButton.getAttribute('href').includes('header_column_filters_field')) {
+                            this.#createFilterToggles();
+                        }
                     })
                     .catch((error) => { console.error(error); });
 
