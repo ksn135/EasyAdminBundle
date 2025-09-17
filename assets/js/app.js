@@ -222,29 +222,29 @@ class App {
 
                 event.preventDefault();
             });
-        });
+            const removeFilter = (filterField) => {
+                filterField.closest('form').querySelectorAll(`input[name^="filters[${filterField.dataset.filterProperty}]"]`).forEach((filterFieldInput) => {
+                    filterFieldInput.remove();
+                });
 
-        const removeFilter = (filterField) => {
-            filterField.closest('form').querySelectorAll(`input[name^="filters[${filterField.dataset.filterProperty}]"]`).forEach((filterFieldInput) => {
-                filterFieldInput.remove();
+                filterField.remove();
+            };
+
+            document.querySelector('#modal-clear-button').addEventListener('click', () => {
+                filterModal.querySelectorAll('.filter-field').forEach((filterField) => {
+                    removeFilter(filterField);
+                });
+                filterModal.querySelector('form').submit();
             });
 
-            filterField.remove();
-        };
-
-        document.querySelector('#modal-clear-button').addEventListener('click', () => {
-            filterModal.querySelectorAll('.filter-field').forEach((filterField) => {
-                removeFilter(filterField);
+            document.querySelector('#modal-apply-button').addEventListener('click', () => {
+                filterModal.querySelectorAll('.filter-checkbox:not(:checked)').forEach((notAppliedFilter) => {
+                    removeFilter(notAppliedFilter.closest('.filter-field'));
+                });
+                filterModal.querySelector('form').submit();
             });
-            filterModal.querySelector('form').submit();
         });
 
-        document.querySelector('#modal-apply-button').addEventListener('click', () => {
-            filterModal.querySelectorAll('.filter-checkbox:not(:checked)').forEach((notAppliedFilter) => {
-                removeFilter(notAppliedFilter.closest('.filter-field'));
-            });
-            filterModal.querySelector('form').submit();
-        });
     }
 
     #createBatchActions() {
