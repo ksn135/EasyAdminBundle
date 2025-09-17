@@ -246,9 +246,19 @@ class App {
 
             filterButton.addEventListener('click', (event) => {
 
-                // Позиционируем модальное окно рядом с кнопкой
-                this.#positionModalNearButton(filterButton, filterModal, modalDialog);
-
+                if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
+                    // Позиционируем модальное окно рядом с кнопкой
+                    this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+                } else { 
+                    // Возвращаем модальное окно на позицию по умолчанию
+                    modalDialog.style.position = '';
+                    modalDialog.style.left = '';
+                    modalDialog.style.top = '';
+                    modalDialog.style.width = '';
+                    modalDialog.style.maxWidth = '';
+                    modalDialog.style.margin = '';
+                    modalDialog.classList.add('modal-dialog-centered');                    
+                }
                 const filterModalBody = filterModal.querySelector('.modal-body');
                 filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
