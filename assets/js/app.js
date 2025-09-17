@@ -217,6 +217,9 @@ class App {
                         filterModalBody.innerHTML = text;
                         this.#createAutoCompleteFields();
                         this.#createFilterToggles();
+
+                        const buttons = filterModalBody.querySelectorAll('input.filter-checkbox:not(:checked)');
+                        if (buttons.length == 1) buttons[0].click();
                     })
                     .catch((error) => { console.error(error); });
 
