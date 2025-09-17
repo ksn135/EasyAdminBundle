@@ -194,7 +194,7 @@ class App {
     }
 
     #createFilters() {
-        const filterButtons = document.querySelector('.datagrid-filters .action-filters-button, .header-column-filters-button');
+        const filterButtons = document.querySelectorAll('.datagrid-filters .action-filters-button, .header-column-filters-button');
         if (! filterButtons.length) {
             return;
         }
