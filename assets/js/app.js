@@ -296,17 +296,17 @@ class App {
                                     }
                                 }
                             });
-                        } else { 
-                            // Возвращаем модальное окно на позицию по умолчанию
-                            modalDialog.style.position = '';
-                            modalDialog.style.left = '';
-                            modalDialog.style.top = '';
-                            modalDialog.style.width = '';
-                            modalDialog.style.maxWidth = '';
-                            modalDialog.style.maxHeight = '';
-                            modalDialog.style.margin = '';
-                            filterModalBody.style.maxHeight = '';                                                
-                            modalDialog.classList.add('modal-dialog-centered');  
+                        // } else { 
+                        //     // Возвращаем модальное окно на позицию по умолчанию
+                        //     modalDialog.style.position = '';
+                        //     modalDialog.style.left = '';
+                        //     modalDialog.style.top = '';
+                        //     modalDialog.style.width = '';
+                        //     modalDialog.style.maxWidth = '';
+                        //     modalDialog.style.maxHeight = '';
+                        //     modalDialog.style.margin = '';
+                        //     filterModalBody.style.maxHeight = '';                                                
+                        //     modalDialog.classList.add('modal-dialog-centered');  
                         }
                     })
                     .catch((error) => { console.error(error); });
