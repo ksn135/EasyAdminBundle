@@ -199,7 +199,8 @@ class App {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
         const modalWidth = 400; // Ширина модального окна
-        const modalHeight = 300; // Примерная высота модального окна
+        const headerHeight = 60; // Высота заголовка модального окна
+        const padding = 20; // Отступы от краев экрана
         
         // Убираем центрирование
         modalDialog.classList.remove('modal-dialog-centered');
@@ -237,6 +238,12 @@ class App {
         modalDialog.style.width = modalWidth + 'px';
         modalDialog.style.maxWidth = 'none';
         modalDialog.style.maxHeight = maxHeight + 'px';
+
+        // Устанавливаем максимальную высоту для содержимого
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.style.maxHeight = (maxHeight - headerHeight) + 'px';
+        }        
     }    
 
     #createFilters() {
@@ -259,6 +266,12 @@ class App {
                 const filterModalBody = filterModal.querySelector('.modal-body');
                 filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
+                // Позиционируем модальное окно рядом с кнопкой
+                if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
+                            this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+                }
+
+
                 fetch(filterButton.getAttribute('href'))
                     .then((response) => { return response.text(); })
                     .then((text) => {
@@ -278,13 +291,11 @@ class App {
                                         col.classList.add('d-none'); // Bootstrap класс для скрытия
                                     } else {
                                         col.classList.remove('d-none');
-                                        const chkbox_button = filterField.querySelector('input.filter-checkbox');
+                                        const chkbox_button = col.querySelector('input.filter-checkbox:not(:checked)');
                                         if (chkbox_button) chkbox_button.click();
                                     }
                                 }
                             });
-                            // Позиционируем модальное окно рядом с кнопкой
-                            this.#positionModalNearButton(filterButton, filterModal, modalDialog);
                         } else { 
                             // Возвращаем модальное окно на позицию по умолчанию
                             modalDialog.style.position = '';
