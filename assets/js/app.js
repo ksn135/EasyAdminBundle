@@ -209,6 +209,7 @@ class App {
         // Вычисляем позицию
         let left = buttonRect.left + (buttonRect.width / 2) - (modalWidth / 2);
         let top = buttonRect.bottom + 10; // 10px отступ от кнопки
+        let maxHeight;
         
         // Проверяем, не выходит ли модальное окно за границы экрана
         if (left < 10) {
@@ -217,16 +218,25 @@ class App {
             left = viewportWidth - modalWidth - 10;
         }
         
-        if (top + modalHeight > viewportHeight - 10) {
-            // Если не помещается снизу, показываем сверху
-            top = buttonRect.top - modalHeight - 10;
-        }
+        // Проверяем, помещается ли модальное окно снизу
+        const availableHeightBelow = viewportHeight - top - padding;
+        const availableHeightAbove = buttonRect.top - padding;
         
+        if (availableHeightBelow < 200) { // Минимальная высота модального окна
+            // Если снизу мало места, показываем сверху
+            top = Math.max(padding, buttonRect.top - Math.min(400, availableHeightAbove) - 10);
+            maxHeight = Math.min(400, availableHeightAbove - 10);
+        } else {
+            // Показываем снизу
+            maxHeight = Math.min(400, availableHeightBelow);
+        }
+
         // Применяем позицию
         modalDialog.style.left = left + 'px';
         modalDialog.style.top = top + 'px';
         modalDialog.style.width = modalWidth + 'px';
         modalDialog.style.maxWidth = 'none';
+        modalDialog.style.maxHeight = maxHeight + 'px';
     }    
 
     #createFilters() {
@@ -245,20 +255,22 @@ class App {
             filterButton.classList.remove('disabled');
 
             filterButton.addEventListener('click', (event) => {
+                event.preventDefault();
 
-                if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
-                    // Позиционируем модальное окно рядом с кнопкой
-                    this.#positionModalNearButton(filterButton, filterModal, modalDialog);
-                } else { 
-                    // Возвращаем модальное окно на позицию по умолчанию
-                    modalDialog.style.position = '';
-                    modalDialog.style.left = '';
-                    modalDialog.style.top = '';
-                    modalDialog.style.width = '';
-                    modalDialog.style.maxWidth = '';
-                    modalDialog.style.margin = '';
-                    modalDialog.classList.add('modal-dialog-centered');                    
-                }
+                // if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
+                //     // Позиционируем модальное окно рядом с кнопкой
+                //     this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+                // } else { 
+                //     // Возвращаем модальное окно на позицию по умолчанию
+                //     modalDialog.style.position = '';
+                //     modalDialog.style.left = '';
+                //     modalDialog.style.top = '';
+                //     modalDialog.style.width = '';
+                //     modalDialog.style.maxWidth = '';
+                //     modalDialog.style.maxHeight = '';
+                //     modalDialog.style.margin = '';
+                //     modalDialog.classList.add('modal-dialog-centered');                    
+                // }
                 const filterModalBody = filterModal.querySelector('.modal-body');
                 filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
@@ -267,13 +279,29 @@ class App {
                     .then((text) => {
                         filterModalBody.innerHTML = text;
                         this.#createAutoCompleteFields();
-                        if(! filterButton.getAttribute('href').includes('header_column_filters_field')) {
-                            this.#createFilterToggles();
+                        this.#createFilterToggles();
+                        // скрытие полей
+                        if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
+                            const fieldName = (new URLSearchParams($2.getAttribute('href'))).get('header_column_filters_field');
+                            // Добавляем CSS класс для скрытия
+                            const allCol12 = filterModal.querySelectorAll('.col-12');
+                            allCol12.forEach(col => {
+                                const filterField = col.querySelector('.filter-field');
+                                if (filterField) {
+                                    const filterProperty = filterField.getAttribute('data-filter-property');
+                                    if (filterProperty !== fieldName) {
+                                        col.classList.add('d-none'); // Bootstrap класс для скрытия
+                                    } else {
+                                        col.classList.remove('d-none');
+                                        const chkbox_button = filterField.querySelector('input.filter-checkbox');
+                                        if (chkbox_button) chkbox_button.click();
+                                    }
+                                }
+                            });
                         }
                     })
                     .catch((error) => { console.error(error); });
 
-                event.preventDefault();
             });
             const removeFilter = (filterField) => {
                 filterField.closest('form').querySelectorAll(`input[name^="filters[${filterField.dataset.filterProperty}]"]`).forEach((filterFieldInput) => {
