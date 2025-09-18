@@ -256,21 +256,6 @@ class App {
 
             filterButton.addEventListener('click', (event) => {
                 event.preventDefault();
-
-                // if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
-                //     // Позиционируем модальное окно рядом с кнопкой
-                //     this.#positionModalNearButton(filterButton, filterModal, modalDialog);
-                // } else { 
-                //     // Возвращаем модальное окно на позицию по умолчанию
-                //     modalDialog.style.position = '';
-                //     modalDialog.style.left = '';
-                //     modalDialog.style.top = '';
-                //     modalDialog.style.width = '';
-                //     modalDialog.style.maxWidth = '';
-                //     modalDialog.style.maxHeight = '';
-                //     modalDialog.style.margin = '';
-                //     modalDialog.classList.add('modal-dialog-centered');                    
-                // }
                 const filterModalBody = filterModal.querySelector('.modal-body');
                 filterModalBody.innerHTML = '<div class="fa-3x px-3 py-3 text-muted text-center"><i class="fas fa-circle-notch fa-spin"></i></div>';
 
@@ -282,7 +267,7 @@ class App {
                         this.#createFilterToggles();
                         // скрытие полей
                         if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
-                            const fieldName = (new URLSearchParams($2.getAttribute('href'))).get('header_column_filters_field');
+                            const fieldName = (new URLSearchParams(filterButton.getAttribute('href'))).get('header_column_filters_field');
                             // Добавляем CSS класс для скрытия
                             const allCol12 = filterModal.querySelectorAll('.col-12');
                             allCol12.forEach(col => {
@@ -298,6 +283,18 @@ class App {
                                     }
                                 }
                             });
+                            // Позиционируем модальное окно рядом с кнопкой
+                            this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+                        } else { 
+                            // Возвращаем модальное окно на позицию по умолчанию
+                            modalDialog.style.position = '';
+                            modalDialog.style.left = '';
+                            modalDialog.style.top = '';
+                            modalDialog.style.width = '';
+                            modalDialog.style.maxWidth = '';
+                            modalDialog.style.maxHeight = '';
+                            modalDialog.style.margin = '';
+                            modalDialog.classList.add('modal-dialog-centered');                    
                         }
                     })
                     .catch((error) => { console.error(error); });
