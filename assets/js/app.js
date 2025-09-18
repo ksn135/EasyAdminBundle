@@ -268,7 +268,7 @@ class App {
 
                 // Позиционируем модальное окно рядом с кнопкой
                 if(filterButton.getAttribute('href').includes('header_column_filters_field')) {
-                            this.#positionModalNearButton(filterButton, filterModal, modalDialog);
+                    this.#positionModalNearButton(filterButton, filterModal, modalDialog);
                 }
 
 
@@ -305,7 +305,8 @@ class App {
                             modalDialog.style.maxWidth = '';
                             modalDialog.style.maxHeight = '';
                             modalDialog.style.margin = '';
-                            modalDialog.classList.add('modal-dialog-centered');                    
+                            filterModalBody.style.maxHeight = '';                                                
+                            modalDialog.classList.add('modal-dialog-centered');  
                         }
                     })
                     .catch((error) => { console.error(error); });
