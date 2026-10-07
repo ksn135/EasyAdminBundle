@@ -39,8 +39,12 @@ class CrudAutocompleteType extends AbstractType implements DataMapperInterface
             'multiple' => false,
             // force display errors on this form field
             'error_bubbling' => false,
+            // Passed through to the inner EntityType by CrudAutocompleteSubscriber
+            // (e.g. custom labels for soft-deleted related entities).
+            'choice_label' => null,
         ]);
 
+        $resolver->setAllowedTypes('choice_label', ['null', 'string', 'callable']);
         $resolver->setRequired(['class']);
     }
 
