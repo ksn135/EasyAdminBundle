@@ -39,12 +39,13 @@ class CrudAutocompleteType extends AbstractType implements DataMapperInterface
             'multiple' => false,
             // force display errors on this form field
             'error_bubbling' => false,
-            // Passed through to the inner EntityType by CrudAutocompleteSubscriber
-            // (e.g. custom labels for soft-deleted related entities).
-            'choice_label' => null,
         ]);
 
-        $resolver->setAllowedTypes('choice_label', ['null', 'string', 'callable']);
+        // Only when explicitly set via setFormTypeOption — otherwise EntityType keeps
+        // DoctrineType's default ChoiceList::label (a null default here would override it
+        // and TomSelect would show "0").
+        $resolver->setDefined(['choice_label']);
+        $resolver->setAllowedTypes('choice_label', ['string', 'callable']);
         $resolver->setRequired(['class']);
     }
 
